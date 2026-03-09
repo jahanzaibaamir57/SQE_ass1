@@ -16,35 +16,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Setup .NET Framework and .NET 8
+      # Step 2: Setup MSBuild for .NET Framework
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      # Step 3: Setup .NET 8 for tests
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
 
-      # Step 3: Restore dependencies
-      - name: Restore dependencies
-        run: |
-          dotnet restore "SearchLibrary/SearchLibrary.csproj"
-          dotnet restore "SearchLibrary.Tests/SearchLibrary.Tests.csproj"
+      # Step 4: Restore NuGet packages for solution
+      - name: Restore NuGet packages
+        run: nuget restore SearchLibrary.sln
 
-      # Step 4: Build the projects
-      - name: Build projects
-        run: |
-          dotnet build "SearchLibrary/SearchLibrary.csproj" --no-restore --configuration Release
-          dotnet build "SearchLibrary.Tests/SearchLibrary.Tests.csproj" --no-restore --configuration Release
+      # Step 5: Build .NET Framework project with MSBuild
+      - name: Build SearchLibrary (.NET Framework)
+        run: msbuild SearchLibrary/SearchLibrary.csproj /p:Configuration=Release /p:Platform=AnyCPU
 
-      # Step 5: Run tests with coverage
+      # Step 6: Restore and Build .NET 8 test project
+      - name: Restore test project dependencies
+        run: dotnet restore "SearchLibrary.Tests/SearchLibrary.Tests.csproj"
+
+      - name: Build test project
+        run: dotnet build "SearchLibrary.Tests/SearchLibrary.Tests.csproj" --no-restore --configuration Release
+
+      # Step 7: Run tests with coverage
       - name: Run tests with XPlat Code Coverage
-        run: |
-          dotnet test "SearchLibrary.Tests/SearchLibrary.Tests.csproj" \
-            --no-build \
-            --configuration Release \
-            --logger "trx;LogFileName=test-results.trx" \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./TestResults
+        run: dotnet test "SearchLibrary.Tests/SearchLibrary.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
-      # Step 6: Upload test results as artifacts
+      # Step 8: Upload test results as artifacts
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -53,7 +54,7 @@ jobs:
           path: TestResults/*.trx
           retention-days: 30
 
-      # Step 7: Upload coverage report
+      # Step 9: Upload coverage report
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
