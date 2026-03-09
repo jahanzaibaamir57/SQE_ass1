@@ -9,14 +9,14 @@ on:
 jobs:
   build-and-test:
     name: Build & Test
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Setup .NET 8 environment
+      # Step 2: Setup .NET Framework and .NET 8
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
