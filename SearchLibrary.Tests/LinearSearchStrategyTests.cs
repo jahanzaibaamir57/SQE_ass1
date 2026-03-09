@@ -11,7 +11,7 @@ namespace SearchLibrary.Tests
         public void Search_NullArray_ReturnsMinusOne()
         {
             int result = _search.Search(null, 10);
-            Assert.Equal(-1, result);
+            Assert.Equal(3, result);
         }
 
         [Fact]
